@@ -1,0 +1,73 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+dataframe = pd.read_csv('E:\\Diabetes.csv')
+dataframe.describe()
+
+#Checking Null values in the data set.
+dataframe.isnull().sum()
+
+#Replacing null values with NAN 
+dataframe['Plasma glucose concentration'] = dataframe['Plasma glucose concentration'].replace('0', np.nan)
+dataframe['Diastolic blood pressure (mm Hg)'] = dataframe['Diastolic blood pressure (mm Hg)'].replace('0', np.nan)
+dataframe['Triceps skin fold thickness (mm)'] = dataframe['Triceps skin fold thickness (mm)'].replace('0', np.nan)
+dataframe['2-Hour serum insulin (mu U/ml)'] = dataframe['2-Hour serum insulin (mu U/ml)'].replace('0', np.nan)
+dataframe['Body mass index (weight in kg/(height in m)^2)'] = dataframe['Body mass index (weight in kg/(height in m)^2)'].replace('0', np.nan)
+dataframe['Diabetes pedigree function'] = dataframe['Diabetes pedigree function'].replace('0', np.nan)
+dataframe['Age (years)'] = dataframe['Age (years)'].replace('0', np.nan)
+
+
+
+#Replacing Missing values with mean or median
+
+dataframe['Body mass index (weight in kg/(height in m)^2)'].fillna(dataframe['Body mass index (weight in kg/(height in m)^2)'].median(), inplace=True)
+dataframe['Plasma glucose concentration'].fillna(dataframe['Plasma glucose concentration'].median(), inplace=True)
+dataframe['Diastolic blood pressure (mm Hg)'].fillna(dataframe['Diastolic blood pressure (mm Hg)'].median(), inplace=True)
+dataframe['Triceps skin fold thickness (mm)'].fillna(dataframe['Triceps skin fold thickness (mm)'].median(), inplace=True)
+dataframe['2-Hour serum insulin (mu U/ml)'].fillna(dataframe['2-Hour serum insulin (mu U/ml)'].median(), inplace=True)
+
+dataframe.describe()
+
+#Visualization of PairPlot
+
+import seaborn as sns
+sns.pairplot(dataframe)
+
+#Visualization of HeatMap
+
+corr = dataframe[dataframe.columns].corr()
+cmap = sns.diverging_palette(220, 10, as_cmap=True)
+sns.heatmap(corr, cmap=cmap, annot = True)
+
+X_features = pd.DataFrame(data = dataframe, columns = ["Plasma glucose concentration","Body mass index (weight in kg/(height in m)^2)","Age (years)"])
+Y = dataframe.iloc[:,8]
+
+#Scaling the features
+
+scaler = StandardScaler()
+X_features = scaler.fit_transform(X_features)
+X_train, X_test, Y_train, Y_test = train_test_split(X_features, Y, test_size=0.20, random_state=10)
+
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report
+
+
+SVM_Linear = SVC(kernel='linear').fit(X_train, Y_train)
+y_predict = SVM_Linear.predict(X_test)
+print('Classification Report: \n',classification_report(Y_test, y_predict))
+print('Confusion Matrix: \n',confusion_matrix(Y_test, y_predict))
+plt.title('Confusion matrix for SVM classifier with a linear kernel')
+sns.heatmap(confusion_matrix(Y_test, y_predict), annot=True, cmap="YlGn")
+
+print('Accuracy: \n',accuracy_score(Y_test,y_predict)*100)
+
+SVM_rbf = SVC(kernel="rbf").fit(X_train, Y_train)
+y_pred_rbf = SVM_rbf.predict(X_test)
+print('Classification Report: \n',classification_report(Y_test, y_pred_rbf))
+print('Confusion Matrix: \n',confusion_matrix(Y_test, y_pred_rbf))
+print('Accuracy: \n',accuracy_score(Y_test,y_pred_rbf)*100)
